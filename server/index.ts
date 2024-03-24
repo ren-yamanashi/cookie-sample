@@ -56,7 +56,7 @@ app.post('/sign', zValidator('json', z.object({
   })
 
   setCookie(c, 'token', token, {
-    httpOnly: true,
+    httpOnly: false,
     secure: false,
     expires: new Date(Date.now() + 3600000)
   })

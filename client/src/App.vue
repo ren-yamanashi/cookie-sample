@@ -1,10 +1,11 @@
 <script setup lang="ts">
-import { reactive, ref } from 'vue';
+import { computed, reactive, ref } from 'vue';
 import { z } from 'zod';
 
 const loginFormInput = reactive<{email:string; password:string}>({ email: '', password: '' });
 const user = reactive<{id: number; email:string; password:string}>({ id:0, email: '', password: '' });
 const books = ref<{id: number; title: string}[]>([]);
+const isLogin = computed(() => document.cookie.includes('token'));
 
 const login = async () => {
   const res = await fetch('http://localhost:3000/sign', {
@@ -32,7 +33,6 @@ const login = async () => {
 }
 
 const getBook = async () => {
-  console.log('cookie', document.cookie)
   const res = await fetch('http://localhost:3000/books', {
     method: 'GET',
     credentials: 'include',
@@ -46,6 +46,7 @@ const getBook = async () => {
     title: z.string(),
   })).parse(gotBooks);
 
+
   books.value = booksData.map((book) => {
     return {
       id: book.id ?? 1,
@@ -56,7 +57,7 @@ const getBook = async () => {
 </script>
 
 <template>
-  <div v-if="!user.id">
+  <div v-if="!isLogin">
     <div class="main">
       <textarea v-model="loginFormInput.email" placeholder="Email"></textarea>
       <textarea v-model="loginFormInput.password" placeholder="Password"></textarea>
