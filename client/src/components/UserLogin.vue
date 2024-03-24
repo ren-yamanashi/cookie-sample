@@ -1,6 +1,6 @@
 <script setup lang="ts">
-import { onMounted, reactive } from 'vue';
-import { RouterView, useRouter } from 'vue-router';
+import { reactive } from 'vue';
+import { useRouter } from 'vue-router';
 
 const router = useRouter();
 const loginFormInput = reactive<{email:string; password:string}>({ email: '', password: '' });
@@ -16,13 +16,9 @@ const login = async () => {
       email: loginFormInput.email,
       password: loginFormInput.password,
     }),
-  })
-  router.push('/books');
+  })  
+  router.push('/')
 }
-
-onMounted(() => {
-  document.cookie = 'token=; expires=Thu, 01 Jan 1970 00:00:00 UTC; path=/;';
-})
 </script>
 
 <template>
@@ -31,8 +27,6 @@ onMounted(() => {
     <textarea v-model="loginFormInput.password" placeholder="Password"></textarea>
   </div>
   <button class="button" @click="login">Login</button>
-
-  <RouterView />
 </template>
 
 <style scoped>
@@ -41,10 +35,6 @@ onMounted(() => {
   display: flex;
   flex-direction: column;
   align-items: center;
-}
-
-.text {
-  color: black;
 }
 
 button {

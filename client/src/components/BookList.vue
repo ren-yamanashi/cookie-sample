@@ -1,83 +1,94 @@
 <script setup lang="ts">
-import {useRouter} from 'vue-router';
-import { computed, onMounted, ref } from 'vue';
+import { onMounted } from 'vue';
 import { z } from 'zod';
+import { books } from '../../../db/book'
+import { useUserBooks} from '../composables/useUserBooks'
 
-const router = useRouter();
-const books = ref<{id: number; title: string}[]>([]);
-const isLogin = computed(() => document.cookie.includes('token'));
+const { usersBooks, getBooks } = useUserBooks()
 
-const getBook = async () => {
+const addBook = async ( title: string ) => {
   const res = await fetch('http://localhost:3000/books', {
-    method: 'GET',
+    method: 'POST',
     credentials: 'include',
     headers: {
       'Content-Type': 'application/json',
     },
+    body: JSON.stringify({
+      title
+    }),
   })
-  const gotBooks = await res.json();
-  const booksData = z.array(z.object({
-    id: z.number(),
-    title: z.string(),
-  })).parse(gotBooks);
 
-
-  books.value = booksData.map((book) => {
-    return {
-      id: book.id ?? 1,
-      title: book.title ?? "1",
-    }
-  });
+  const resJson = await res.json();
+  const booksData = z.object({
+    isAuthenticated: z.boolean(),
+    books: z.array(z.object({
+      id: z.number(),
+      title: z.string(),
+    })),
+  }).parse(resJson);
+  
+  usersBooks.value = booksData.books;
 }
 
-onMounted(() => {
-  if(!isLogin.value) router.push('/');
-  else getBook();
+onMounted(async () => {
+  await getBooks();
 })
 </script>
 
 <template>
+  <!-- book item -->
+  <section>
     <template v-if="books.length">
-      <div v-for="book in books" :key="book.id" class="text">
+      <div v-for="book in books" :key="book.id" class="book">
+        {{ book.title }}
+        <button @click="() => addBook(book.title)">+</button>
+      </div>
+    </template>
+    <p v-else>
+      No books
+    </p>
+  </section>
+  <!-- user books -->
+  <section>
+    <h4>User Books</h4>
+    <template v-if="usersBooks.length">
+      <div v-for="book in usersBooks" :key="book.id" class="book">
         {{ book.title }}
       </div>
     </template>
     <p v-else>
       No books
     </p>
+  </section>
 </template>
 
+
 <style scoped>
-
-.main {
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-}
-
-.text {
+p {
   color: black;
 }
 
+h4 {
+  margin-top: 30px;
+  color: rgb(100, 100, 100);
+  font-weight: bold;
+}
+
+.book {
+  color: black;
+  display: flex;
+  justify-content: flex-start;
+  align-items: center;
+}
+
 button {
-  width: 100%;
-  margin-top: 20px;
-  padding: 10px;
+  width: 60px;
+  margin: 10px 0px 10px 10px;
+  padding: 5px;
   background-color: #4CAF50;
   color: white;
   border: none;
   cursor: pointer;
   border-radius: 4px;
-}
-
-textarea {
-  width: 100%;
-  padding: 10px;
-  margin: 5px 0;
-  height: 40px;
-  box-sizing: border-box;
-  border: 2px solid #ccc;
-  border-radius: 4px;
-  resize: vertical;
 }
 </style>
